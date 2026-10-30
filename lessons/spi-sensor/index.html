@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPI Sensor Read</title>
+  <meta name="description" content="Interactive lesson: read a sensor over SPI. Build the clock, pick the SPI mode, watch every bit move and break it on purpose.">
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="lesson.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="../../index.html">BitByBit<span> Embedded</span></a>
+      <nav><a href="../../index.html#lessons">Lessons</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <span class="tag">SPI</span>
+      <h1>Read a sensor over SPI</h1>
+      <p>Task: the microcontroller has to read a value from a sensor next to it on the board.
+        Pick both parts, then follow every step: why SPI, who drives which wire, where the
+        clock comes from, how each bit travels, and what breaks when you get it wrong.</p>
+    </section>
+
+    <nav class="stepper" aria-label="Lesson steps">
+      <a href="#step1" data-step="1"><span class="num">1</span>Microcontroller</a>
+      <a href="#step2" data-step="2"><span class="num">2</span>Sensor</a>
+      <a href="#step3" data-step="3"><span class="num">3</span>Communication: SPI</a>
+    </nav>
+
+    <section id="step1" class="step">
+      <h2><span class="num">1</span>Pick the microcontroller</h2>
+      <p class="lead">This is the <strong>master</strong>: it decides when to talk and makes the clock.</p>
+      <div id="mcu-list" class="choice-grid"></div>
+    </section>
+
+    <section id="step2" class="step locked">
+      <h2><span class="num">2</span>Pick the sensor</h2>
+      <p class="lead">This is the <strong>slave</strong>: it only answers when it is selected and clocked.</p>
+      <div id="sensor-list" class="choice-grid"></div>
+    </section>
+
+    <section id="step3" class="step locked">
+      <h2><span class="num">3</span>Communication: SPI</h2>
+      <p class="lead" id="task-line"></p>
+
+      <article class="card part" id="why">
+        <h3><span class="sub">3.1</span>Why SPI and not something else?</h3>
+        <div id="why-body"></div>
+      </article>
+
+      <article class="card part" id="wiring">
+        <h3><span class="sub">3.2</span>Who drives which wire?</h3>
+        <p>SPI has four wires. Three are driven by the microcontroller, one by the sensor.
+          The moving dashes show the direction the signal travels.</p>
+        <div id="wiring-svg" class="figure scroll-x"></div>
+        <div id="wiring-notes"></div>
+      </article>
+
+      <article class="card part" id="clock">
+        <h3><span class="sub">3.3</span>Where does the clock (SCK) come from?</h3>
+        <p>The microcontroller has to make SCK itself. It starts at an oscillator, goes through
+          the PLL, is selected as the SPI <em>kernel clock</em> and divided down by the SPI
+          prescaler. Change any setting and watch the frequency follow it to the pin.</p>
+        <div id="clock-chain" class="chain"></div>
+        <div id="clock-controls" class="controls"></div>
+        <div id="sck-meter"></div>
+        <div id="clock-notes"></div>
+      </article>
+
+      <article class="card part" id="mode">
+        <h3><span class="sub">3.4</span>SPI mode: when is a bit read?</h3>
+        <p>Two settings decide the timing. <strong>CPOL</strong> (Clock Polarity): is SCK low or high while idle?
+          <strong>CPHA</strong> (Clock Phase): is the bit read on the first or the second clock edge?
+          Master and sensor must agree, or they read the line while it is still changing.</p>
+        <div class="note info"><strong>Who decides?</strong> The STM32 can be set to <strong>any</strong> of the 4 modes
+          (the CPOL and CPHA settings of its SPI). The <strong>sensor</strong> decides which modes work: its datasheet lists them.
+          You always set the master to match the sensor. The generic sensor accepts all 4. The BME280 accepts only modes 0 and 3, and the ADXL345 only mode 3.</div>
+        <div id="mode-list" class="mode-grid"></div>
+        <div id="mode-notes"></div>
+      </article>
+
+      <article class="card part" id="anatomy">
+        <h3><span class="sub">3.5</span>One clock cycle up close</h3>
+        <p>Before watching a whole byte, zoom into the first bits. Does the master put the data on
+          the wire first, or start the clock first? How long is SCK high, how long low? Where exactly
+          is the bit read? The answers depend on the SPI mode, so try all four.</p>
+        <div class="toolbar" id="anatomy-modes"></div>
+        <div id="anatomy-svg" class="figure scroll-x"></div>
+        <div id="anatomy-pop" class="popup inline" aria-live="polite"></div>
+      </article>
+
+      <article class="card part" id="transfer">
+        <h3><span class="sub">3.6</span>Watch the whole transfer, step by step</h3>
+        <p id="transfer-intro"></p>
+        <div class="toolbar">
+          <button id="btn-restart" title="Back to the start">⏮ Restart</button>
+          <button id="btn-play">▶ Auto-play</button>
+          <button id="btn-again">New read</button>
+          <label class="speed">Auto-play speed
+            <select id="speed">
+              <option value="slow">Slow</option>
+              <option value="normal" selected>Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </label>
+        </div>
+        <div class="figure scroll-x">
+          <div class="scene-inner">
+            <div id="scene"></div>
+            <div id="popup" class="popup" aria-live="polite"></div>
+          </div>
+        </div>
+        <h4 class="scope-title">The same transfer as an oscilloscope would show it</h4>
+        <div id="timing-svg" class="figure scroll-x"></div>
+        <div id="result"></div>
+      </article>
+
+      <article class="card part" id="faults">
+        <h3><span class="sub">3.7</span>Break it on purpose</h3>
+        <p>Turn on a mistake and replay the transfer above. Most of these give no error
+          message at all. The only sign is a wrong number.</p>
+        <div id="fault-list" class="fault-list"></div>
+      </article>
+
+      <article class="card part" id="code">
+        <h3><span class="sub">3.8</span>The code for exactly these settings</h3>
+        <p>STM32 HAL code that matches every choice you made above. Red lines are the mistakes you switched on.</p>
+        <pre class="code"><code id="code-body"></code></pre>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap">BitByBit Embedded · Values from the STM32 reference manual, the Nucleo board manual and the sensor datasheets. Always check them for your own design.</div></footer>
+
+  <script src="spi.js"></script>
+</body>
+</html>

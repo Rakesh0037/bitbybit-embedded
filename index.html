@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BitByBit Embedded</title>
+  <meta name="description" content="Embedded systems you can see: interactive lessons that start from a real task and show every signal, clock and failure.">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="index.html">BitByBit<span> Embedded</span></a>
+      <nav><a href="#lessons">Lessons</a><a href="#about">About</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Embedded systems you can <em>see</em>.</h1>
+      <p>Every lesson starts with a real task: "read a sensor", "talk to another board".
+        Then you watch it happen: who drives which wire, where the clock comes from,
+        how every bit moves, and exactly where it breaks.</p>
+    </section>
+
+    <section id="lessons" style="margin-top:24px">
+      <h2>Lessons</h2>
+      <div class="grid">
+        <a class="card lesson-card" href="lessons/spi-sensor/index.html">
+          <span class="tag">SPI</span>
+          <h3>Read a sensor over SPI</h3>
+          <p>Pick a microcontroller and a sensor. Build the clock, set the mode,
+            watch the transfer bit by bit and break it on purpose.</p>
+        </a>
+        <div class="card lesson-card soon">
+          <span class="tag grey">Coming soon</span>
+          <h3>Where does the CPU clock come from?</h3>
+          <p>From a crystal to hundreds of MHz: oscillators, PLL, voltage scaling and flash wait states.</p>
+        </div>
+        <div class="card lesson-card soon">
+          <span class="tag grey">Coming soon</span>
+          <h3>Two boards talking over CAN</h3>
+          <p>Transceivers, arbitration, bit timing and why the bus needs 120 Ω.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" style="margin-top:40px">
+      <h2>About</h2>
+      <p style="max-width:680px">Books and videos tell you <em>what</em> to type. This site shows
+        you <em>what happens</em> when you do. Every lesson runs on a cheap, real dev board, so
+        you can check everything you see here on your own desk.</p>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap">BitByBit Embedded · built while learning, shared while building.</div></footer>
+</body>
+</html>

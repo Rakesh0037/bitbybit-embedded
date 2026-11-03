@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Robots</title>
+  <meta name="description" content="Five robots show who puts your code and variables where: compiler, linker, flasher, startup and CPU, from source file to running program.">
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="memory.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="../../index.html">BitByBit<span> Embedded</span></a>
+      <nav><a href="../../index.html#lessons">Lessons</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <span class="tag">Memory</span>
+      <h1>Where do your variables live?</h1>
+      <p>Globals, locals, constants and code all end up in different places, and different
+        workers put them there. Meet five robots and follow one small program from your PC
+        to a running STM32.</p>
+    </section>
+
+    <div class="toolbar">
+      <button id="btn-restart">⏮ Restart</button>
+      <button id="btn-play">▶ Auto-play</button>
+      <label class="speed">Auto-play speed
+        <select id="speed">
+          <option value="slow">Slow</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="figure scroll-x"><div id="scene"></div></div>
+    <div id="popup" class="popup" aria-live="polite"></div>
+
+    <section class="card summary">
+      <h2>The whole picture</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>In your code</th><th>Section</th><th>Lives in</th><th>Who puts it there</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td>Code: <code>void f(void) { … }</code></td><td><code>.text</code></td><td>Flash</td><td>Flasher</td><td>When you program the board</td></tr>
+          <tr><td>Constant: <code>const int c = 7;</code></td><td><code>.rodata</code></td><td>Flash</td><td>Flasher</td><td>When you program the board</td></tr>
+          <tr><td>Initialized global: <code>int a = 5;</code></td><td><code>.data</code></td><td>Original in Flash, working copy in RAM</td><td>Flasher, then Startup</td><td>Programming, then every reset</td></tr>
+          <tr><td>Uninitialized global: <code>int b;</code></td><td><code>.bss</code></td><td>RAM, written with 0</td><td>Startup</td><td>Every reset</td></tr>
+          <tr><td>Zero global: <code>int z = 0;</code></td><td><code>.bss</code> (GCC's default)</td><td>RAM, written with 0</td><td>Startup</td><td>Every reset</td></tr>
+          <tr><td>Static local: <code>static int s = 5;</code></td><td><code>.data</code> or <code>.bss</code>, like a global</td><td>As above</td><td>As above</td><td>As above</td></tr>
+          <tr><td>Local: <code>int x = 3;</code></td><td>None</td><td>Stack, or a CPU register</td><td>CPU</td><td>Each time the function runs</td></tr>
+          <tr><td>Dynamic: <code>malloc(16)</code></td><td>None</td><td>Heap</td><td>CPU</td><td>When that line runs</td></tr>
+        </tbody>
+      </table></div>
+      <p class="fineprint">Addresses in the animation are examples. Startup is drawn as its own robot, but it is really code that the CPU runs from Flash. With compiler optimization on, a local like <code>x</code> may live in a register or disappear completely.</p>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap">BitByBit Embedded · built while learning, shared while building.</div></footer>
+
+  <script src="memory.js"></script>
+</body>
+</html>

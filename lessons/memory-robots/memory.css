@@ -1,0 +1,66 @@
+/* Memory robots lesson */
+:root {
+  --robot-compiler: var(--sig-sck);
+  --robot-linker: var(--sig-cs);
+  --robot-flasher: var(--sig-mosi);
+  --robot-startup: var(--sig-miso);
+  --robot-cpu: #0e8fa0;
+}
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; scroll-margin-top: 8px; }
+.toolbar .speed { margin-left: auto; font-size: .9rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+.figure { margin: 8px 0; }
+.scroll-x { overflow-x: auto; }
+/* Keeps the whole scene and the popup on one screen */
+#scene svg { display: block; width: 100%; min-width: 760px; height: auto; max-height: calc(100vh - 250px); }
+
+/* Scene */
+svg text { fill: var(--text); font-family: var(--sans); }
+svg .muted { fill: var(--muted); }
+svg .mono { font-family: var(--mono); }
+svg .zone { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+svg .sheet { fill: var(--surface-2); stroke: var(--border); }
+svg .cupboard { fill: var(--surface-2); stroke: var(--muted); stroke-width: 2; }
+svg .slot { fill: var(--surface); stroke: var(--border); }
+svg .codeline { fill: var(--accent-soft); }
+svg .box { stroke-width: 2; fill: var(--surface); }
+svg .box.text { stroke: var(--robot-compiler); }
+svg .box.rodata { stroke: var(--robot-linker); }
+svg .box.data { stroke: var(--robot-flasher); }
+svg .box.bss { stroke: var(--robot-startup); }
+svg .box.stack { stroke: var(--robot-cpu); }
+svg .box.junk { stroke: var(--sig-z); stroke-dasharray: 4 3; }
+svg .tagline { fill: var(--muted); font-size: 10.5px; font-family: var(--mono); }
+svg .token { stroke: none; fill: var(--accent); }
+svg .tw { fill: #fff; }
+svg .power-on { fill: var(--ok); }
+svg .power-off { fill: var(--sig-z); }
+svg .power-prog { fill: var(--warn); }
+svg .focus { fill: none; stroke: var(--accent); stroke-width: 3; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+
+/* Robots */
+svg .r-compiler { fill: var(--robot-compiler); stroke: var(--robot-compiler); }
+svg .r-linker { fill: var(--robot-linker); stroke: var(--robot-linker); }
+svg .r-flasher { fill: var(--robot-flasher); stroke: var(--robot-flasher); }
+svg .r-startup { fill: var(--robot-startup); stroke: var(--robot-startup); }
+svg .r-cpu { fill: var(--robot-cpu); stroke: var(--robot-cpu); }
+
+/* Step popup */
+.popup {
+  background: var(--surface); border: 2px solid var(--accent); border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18); padding: 12px 16px; margin: 8px 0 24px;
+}
+.popup .stepno { font-size: .8rem; color: var(--muted); }
+.popup .title { font-weight: 700; font-size: 1.08rem; margin: 2px 0 4px; }
+.popup .nav { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+button.primary { color: #fff; }
+button:disabled { opacity: .5; }
+
+.summary { margin-top: 16px; }
+.summary h2 { margin-top: 0; }
+.fineprint { color: var(--muted); font-size: .88rem; margin-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) { svg .focus { animation: none; } }
+@media (max-width: 600px) { .toolbar .speed { margin-left: 0; } }

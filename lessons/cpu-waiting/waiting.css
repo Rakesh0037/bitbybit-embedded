@@ -1,0 +1,133 @@
+/* "Your CPU is fast. So why is it waiting?" lesson */
+:root {
+  --robot-cpu: #0e8fa0;
+  --robot-uart: var(--sig-mosi);
+  --robot-dma: var(--sig-cs);
+  --term-bg: #0b0f14;
+  --term-fg: #c9f7c1;
+}
+
+/* Chapter buttons */
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 4px; }
+.chapters button { font-size: .85rem; padding: 4px 10px; border-radius: 99px; }
+.chapters button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; scroll-margin-top: 8px; }
+.toolbar .speed { margin-left: auto; font-size: .9rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+.figure { margin: 8px 0; }
+.scroll-x { overflow-x: auto; }
+#scene svg { display: block; width: 100%; min-width: 760px; height: auto; max-height: calc(100vh - 260px); }
+
+/* Scene basics */
+svg text { fill: var(--text); font-family: var(--sans); }
+svg .muted { fill: var(--muted); }
+svg .mono { font-family: var(--mono); }
+svg .zone { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+svg .panel { fill: var(--surface-2); stroke: var(--border); }
+svg .codeline { fill: var(--accent-soft); }
+svg .cell { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+svg .cell.next { stroke: var(--accent); stroke-width: 3; }
+svg .cell.sent { fill: var(--surface-2); }
+svg .cell.full { stroke: var(--robot-uart); stroke-width: 2.5; }
+svg .cell.cur { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 2.5; }
+svg .lamp-on { fill: var(--ok); }
+svg .lamp-off { fill: var(--surface); stroke: var(--muted); stroke-width: 1.5; }
+svg .pill { fill: var(--surface); stroke: var(--border); }
+svg .pill.on { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg .wire { stroke: var(--robot-uart); stroke-width: 3; fill: none; }
+svg .wave { stroke: var(--robot-uart); stroke-width: 2.5; fill: none; }
+svg .wave-idle { stroke: var(--sig-z); stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+svg .term { fill: var(--term-bg); stroke: var(--border); }
+svg text.termtext { fill: var(--term-fg); font-family: var(--mono); }
+svg text.termdim { fill: #6f8a6b; font-family: var(--mono); }
+svg .bubble { fill: var(--surface); stroke: var(--text); stroke-width: 1.2; }
+svg .card-bg { fill: var(--surface); stroke: var(--robot-dma); stroke-width: 2; }
+svg .focus { fill: none; stroke: var(--accent); stroke-width: 3; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+
+/* Memory map */
+svg .cupboard { fill: var(--surface-2); stroke: var(--muted); stroke-width: 2; }
+svg .shelf { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+svg .shelf.hot { stroke: var(--accent); stroke-width: 2.5; }
+svg .gap { stroke: var(--muted); stroke-dasharray: 3 5; }
+svg .road { stroke: var(--muted); stroke-width: 2.5; fill: none; }
+svg .road-tcm { stroke: var(--robot-cpu); stroke-width: 4; fill: none; }
+svg .road-dma { stroke: var(--robot-dma); stroke-width: 2.5; fill: none; }
+svg .road-bad { stroke: var(--bad); stroke-width: 3; fill: none; stroke-dasharray: 7 5; }
+svg .xmark { stroke: var(--bad); stroke-width: 5; }
+svg .matrix { fill: var(--surface); stroke: var(--text); stroke-width: 1.5; }
+svg .token { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 2; }
+
+/* Cache */
+svg .tray { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 2; }
+svg .tray.off { fill: var(--surface-2); stroke: var(--border); stroke-dasharray: 5 4; }
+svg .mpu { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2; }
+svg .bus { stroke: var(--muted); stroke-width: 6; fill: none; opacity: .5; }
+svg .bigval { font-size: 30px; font-weight: 800; font-family: var(--mono); }
+svg .badtxt { fill: var(--bad); }
+svg .oktxt { fill: var(--ok); }
+
+/* Board view */
+svg .pcb { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2; }
+svg .chip { fill: var(--surface); stroke: var(--text); stroke-width: 2; }
+svg .uartbox { fill: var(--warn-soft); stroke: var(--robot-uart); stroke-width: 2.5; }
+svg .usb { fill: var(--surface-2); stroke: var(--text); stroke-width: 1.5; }
+svg .cable { stroke: var(--muted); stroke-width: 6; fill: none; stroke-linecap: round; }
+svg .laptop { fill: var(--surface-2); stroke: var(--text); stroke-width: 2; }
+svg .wire-rx { stroke: var(--muted); stroke-width: 2; fill: none; stroke-dasharray: 5 4; }
+
+/* Pop-up banners: problem, idea, it works */
+svg .ban-wrap { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .25)); }
+svg .ban { stroke-width: 2.5; }
+svg .ban-problem { fill: var(--bad-soft); stroke: var(--bad); }
+svg .ban-idea { fill: var(--warn-soft); stroke: var(--warn); }
+svg .ban-win { fill: var(--ok-soft); stroke: var(--ok); }
+svg .ban-label { fill: var(--muted); letter-spacing: .08em; }
+
+/* Robots */
+svg .r-cpu { fill: var(--robot-cpu); stroke: var(--robot-cpu); }
+svg .r-uart { fill: var(--robot-uart); stroke: var(--robot-uart); }
+svg .r-dma { fill: var(--robot-dma); stroke: var(--robot-dma); }
+svg .r-dev { fill: var(--sig-miso); stroke: var(--sig-miso); }
+svg .tw { fill: #fff; }
+
+/* Step popup */
+.popup {
+  background: var(--surface); border: 2px solid var(--accent); border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18); padding: 12px 16px; margin: 8px 0 24px;
+}
+.popup.problem { border-color: var(--bad); background: var(--bad-soft); }
+.popup.idea { border-color: var(--warn); background: var(--warn-soft); }
+.popup.win { border-color: var(--ok); background: var(--ok-soft); }
+.popup .more { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; font-size: .93rem; }
+.popup .more summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.popup .more div { margin-top: 6px; color: var(--text); }
+.popup .stepno { font-size: .8rem; color: var(--muted); }
+.popup .title { font-weight: 700; font-size: 1.08rem; margin: 2px 0 4px; }
+.popup .nav { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+button.primary { color: #fff; }
+
+/* Summary */
+.summary { margin-top: 16px; }
+.summary h2 { margin-top: 0; }
+.summary h3 { margin: 22px 0 6px; font-size: 1.02rem; }
+.fineprint { color: var(--muted); font-size: .88rem; margin-bottom: 0; }
+.ok-txt { color: var(--ok); font-weight: 600; }
+.bad-txt { color: var(--bad); font-weight: 600; }
+.bars { display: grid; gap: 6px; max-width: 560px; }
+.bar-row { display: grid; grid-template-columns: 90px 1fr 52px; gap: 10px; align-items: center; font-size: .92rem; }
+.bar { height: 14px; background: var(--surface-2); border-radius: 7px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--muted); border-radius: 7px; }
+.bar i.good { background: var(--ok); }
+.bar-row b { font-family: var(--mono); text-align: right; }
+
+/* Video mode (?video): only the story, ready for screen recording */
+body.video .topbar, body.video .hero, body.video .summary, body.video .footer, body.video .chapters { display: none; }
+body.video .wrap { max-width: 1560px; }
+body.video .toolbar { margin: 6px 0; }
+body.video #scene svg { max-height: calc(100vh - 280px); }
+body.video .popup { margin: 6px 0; font-size: 1.05rem; }
+
+@media (prefers-reduced-motion: reduce) { svg .focus { animation: none; } }
+@media (max-width: 600px) { .toolbar .speed { margin-left: 0; } .bar-row { grid-template-columns: 74px 1fr 48px; } }

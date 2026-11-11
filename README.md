@@ -12,7 +12,17 @@ lessons/spi-sensor/           "Read a sensor over SPI"
   index.html                  page structure
   lesson.css                  lesson-specific styles
   spi.js                      data, simulation, drawing, code generator
+lessons/memory-robots/        "Where do your variables live?"
+lessons/cpu-waiting/          "Your CPU is fast. So why is it waiting?"
 ```
+
+Story lessons (memory-robots, cpu-waiting) share one step engine: every step
+changes the scene state, Next animates, Back jumps. In cpu-waiting:
+
+- `?step=12` opens a given step (good for sharing one moment).
+- `?video` shows only the scene and the popup, for screen recording.
+  `?video&ch=7&end=7&speed=slow` limits auto-play to chapter 7.
+- Arrow keys or space step through the story.
 
 ## View it locally
 

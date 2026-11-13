@@ -14,6 +14,7 @@ lessons/spi-sensor/           "Read a sensor over SPI"
   spi.js                      data, simulation, drawing, code generator
 lessons/memory-robots/        "Where do your variables live?"
 lessons/cpu-waiting/          "Your CPU is fast. So why is it waiting?"
+lessons/uart-zoom/            "UART at 100× zoom" (register-level DMA send)
 ```
 
 Story lessons (memory-robots, cpu-waiting) share one step engine: every step

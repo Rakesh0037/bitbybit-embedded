@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UART at 100× Zoom</title>
+  <meta name="description" content="One DMA send of Blink 10 over a UART, bit by bit: every register bit the CPU, the UART, the DMA and the NVIC set, from init to the final callback.">
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="zoom.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="../../index.html">BitByBit<span> Embedded</span></a>
+      <nav><a href="../../index.html#lessons">Lessons</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <span class="tag">UART · DMA · Registers</span>
+      <h1>UART at 100× zoom</h1>
+      <p>One message, <code>Blink 10\r\n</code>, sent with DMA on an STM32. We stop time at every
+        moment something changes and look at every bit: what the <b class="c-cpu">CPU</b> sets, what the
+        <b class="c-uart">UART</b> sets by itself, what the <b class="c-dma">DMA</b> does in the middle, and how
+        the <b class="c-nvic">NVIC</b> rings the CPU at the end. Each changed bit lights up in the colour of whoever changed it.
+        New here? Start with <a href="../cpu-waiting/index.html">Your CPU is fast. So why is it waiting?</a></p>
+    </section>
+
+    <nav class="chapters" id="chapters" aria-label="Phases"></nav>
+
+    <div class="toolbar">
+      <button id="btn-restart">⏮ Restart</button>
+      <button id="btn-play">▶ Auto-play</button>
+      <span class="legend"><i class="k-cpu"></i>CPU <i class="k-uart"></i>UART <i class="k-dma"></i>DMA <i class="k-nvic"></i>NVIC</span>
+      <label class="speed">Speed
+        <select id="speed">
+          <option value="slow">Slow</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="figure scroll-x"><div id="scene"></div></div>
+    <div id="popup" class="popup" aria-live="polite"></div>
+
+    <section class="card summary">
+      <h2>Who sets what</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Who</th><th>Sets</th><th>Never does</th></tr></thead>
+        <tbody>
+          <tr><td><b class="c-cpu">CPU</b> (your code and HAL)</td>
+            <td>All configuration: clocks, pins, BRR, UE, TE, the DMA job card (NDTR, M0AR, PAR, EN, interrupt enables), DMAT, TXEIE, TCIE. Inside a bell: clears flags, switches DMAT off and TCIE on, calls your callback.</td>
+            <td>Watch TXE or TC while DMA or interrupts do the work. Clear TXE by hand: writing TDR clears it.</td></tr>
+          <tr><td><b class="c-uart">UART</b> hardware</td>
+            <td>TXE (mailbox empty), TC (wire quiet), TEACK. Moves the mailbox letter to the conveyor. Raises "TXE AND DMAT" as a DMA request and "TXE AND TXEIE" or "TC AND TCIE" as its interrupt line.</td>
+            <td>Know how many letters are left. Call a function.</td></tr>
+          <tr><td><b class="c-dma">DMA</b> hardware</td>
+            <td>Copies one byte per request, counts NDTR down, moves its memory pointer. Sets HTIF at half, TCIF at the end, then switches its own EN off.</td>
+            <td>Change UART bits. Check "count = 0" when a request comes: it counts after each copy.</td></tr>
+          <tr><td><b class="c-nvic">NVIC</b> (inside the CPU core)</td>
+            <td>Turns a ringing line into "CPU, jump to this handler now".</td>
+            <td>Know about <code>Cplt</code>. It only knows line numbers, like "USART3".</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 style="margin-top:28px">The questions we asked on the way</h2>
+      <div class="faq">
+        <details><summary>Who sets TXE, and does someone have to watch it?</summary>
+          <p>The UART hardware sets TXE whenever its mailbox (TDR) is empty. It is a flag, not a message: it stays 1 until something writes into TDR. Nobody has to stand next to it. It is like the flag on a mailbox.</p></details>
+        <details><summary>Does the CPU clear TXE after writing a letter?</summary>
+          <p>No. Writing into TDR clears TXE automatically, in hardware.</p></details>
+        <details><summary>When exactly does TXE come back to 1?</summary>
+          <p>When the waiting letter moves from the mailbox onto the conveyor (shift register), which is the moment its start bit begins. Not when its stop bit ends. That is why the UART always stays one letter ahead: while B is on the wire, l already waits in the mailbox.</p></details>
+        <details><summary>The CPU sets TXEIE or DMAT. Who reads those bits?</summary>
+          <p>The UART. Its own logic checks "TXE AND TXEIE" (then it raises its interrupt line to the NVIC) and "TXE AND DMAT" (then it raises a request wire to the DMA). The CPU only writes those bits.</p></details>
+        <details><summary>When B moves to the conveyor, does the UART first ask for l, or first send B?</summary>
+          <p>Both at the same time. The transmitter (shifting bits out) and the request logic are separate pieces of hardware working in parallel. l arrives a few clock cycles after B's start bit begins, then waits 87 µs.</p></details>
+        <details><summary>What is a "handler"? Isn't it just CPU and UART?</summary>
+          <p>A handler is only a function, like <code>USART3_IRQHandler</code>. When a line rings, the NVIC (part of the CPU core, its "ear") makes the CPU jump to that function. The CPU runs it and goes back to what it was doing.</p></details>
+        <details><summary>I ticked the interrupt in CubeMX. Isn't that enough?</summary>
+          <p>An interrupt needs two switches: the NVIC line enabled (done once at init, from your CubeMX tick) and the source enabled in the UART (TXEIE or TCIE, set by HAL for each send). One without the other rings nothing.</p></details>
+        <details><summary>Is TC always 1?</summary>
+          <p>TC is 1 whenever the wire is quiet: after reset, between messages, after the last stop bit. Writing a letter into TDR (or software writing TCCF) clears it. During a message it stays 0, because a next letter is always already waiting. That is why HAL switches TCIE on only at the very end.</p></details>
+        <details><summary>Does TC depend on DMAT?</summary>
+          <p>No. The UART sets TC whenever the last stop bit has left and nothing waits in the mailbox, with or without DMA.</p></details>
+        <details><summary>Does the DMA switch DMAT off and TCIE on when it is done?</summary>
+          <p>No, the DMA cannot touch UART bits. It rings the CPU (transfer complete); inside that bell, HAL's <code>UART_DMATransmitCplt</code> on the CPU switches DMAT off and TCIE on.</p></details>
+        <details><summary>Does the DMA check "count = 0" when a request comes?</summary>
+          <p>No. It counts NDTR down after every copy. When NDTR reaches 0 the job is finished: it sets TCIF, rings, and switches its stream off. That happens when \n is copied, while \r is still on the wire.</p></details>
+        <details><summary>Does the NVIC call Cplt?</summary>
+          <p>The NVIC only knows "the USART3 line is ringing". The chain is UART (TC AND TCIE) → NVIC → <code>USART3_IRQHandler</code> → <code>HAL_UART_IRQHandler</code> → <code>HAL_UART_TxCpltCallback</code> → your <code>tx_done = 1</code>.</p></details>
+        <details><summary>With interrupts or DMA, which UART flag does the CPU monitor?</summary>
+          <p>None. Hardware does the watching. Our loop only watches <code>tx_done</code>, our own variable in RAM, and only so we can measure. A real program would do other work.</p></details>
+        <details><summary>With polling (<code>printf</code>), does the CPU write l as soon as TXE is back?</summary>
+          <p>Not with our <code>__io_putchar</code>: it sends one letter per call and HAL waits for TC before returning. So the wire goes quiet for a moment between letters. Sending the whole buffer in one call would only wait for TXE between letters, and for TC once at the end.</p></details>
+        <details><summary>After \n, does <code>_write</code> look into the buffer and find it empty?</summary>
+          <p>No. <code>printf</code> calls <code>_write(file, ptr, len = 10)</code>; its loop counts to 10, then returns. The C library collects text until <code>\n</code> (line buffering) and then calls <code>_write</code> once with the whole line.</p></details>
+        <details><summary>Is the letter stored in the status register?</summary>
+          <p>No. The status register (ISR) only holds flags like TXE and TC. The letter goes into TDR.</p></details>
+        <details><summary>Does the UART need the CPU to send bits?</summary>
+          <p>It needs a clock, not the CPU: 130 MHz ÷ 1128 = one bit every 8.68 µs. The CPU could even sleep meanwhile.</p></details>
+        <details><summary>Does the ST-LINK flash the chip over this UART?</summary>
+          <p>No. Flashing uses separate SWD wires (SWDIO, SWCLK). The UART only carries your text to the ST-LINK, which passes it to the laptop as a serial port.</p></details>
+      </div>
+      <p class="fineprint">Register names and the HAL call order are from STM32H7 HAL and our generated code; timing is for 115200 baud from a 130 MHz UART clock. Addresses are from our board.</p>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap">BitByBit Embedded · built while learning, shared while building.</div></footer>
+
+  <script src="zoom.js"></script>
+</body>
+</html>

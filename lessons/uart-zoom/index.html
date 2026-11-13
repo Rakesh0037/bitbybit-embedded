@@ -65,7 +65,8 @@
         </tbody>
       </table></div>
 
-      <h2 style="margin-top:28px">The questions we asked on the way</h2>
+      <h2 style="margin-top:28px">Questions I asked on the way</h2>
+      <h3>About this DMA send</h3>
       <div class="faq">
         <details><summary>Who sets TXE, and does someone have to watch it?</summary>
           <p>The UART hardware sets TXE whenever its mailbox (TDR) is empty. It is a flag, not a message: it stays 1 until something writes into TDR. Nobody has to stand next to it. It is like the flag on a mailbox.</p></details>
@@ -93,6 +94,9 @@
           <p>The NVIC only knows "the USART3 line is ringing". The chain is UART (TC AND TCIE) → NVIC → <code>USART3_IRQHandler</code> → <code>HAL_UART_IRQHandler</code> → <code>HAL_UART_TxCpltCallback</code> → your <code>tx_done = 1</code>.</p></details>
         <details><summary>With interrupts or DMA, which UART flag does the CPU monitor?</summary>
           <p>None. Hardware does the watching. Our loop only watches <code>tx_done</code>, our own variable in RAM, and only so we can measure. A real program would do other work.</p></details>
+      </div>
+      <h3>Related questions</h3>
+      <div class="faq">
         <details><summary>With polling (<code>printf</code>), does the CPU write l as soon as TXE is back?</summary>
           <p>Not with our <code>__io_putchar</code>: it sends one letter per call and HAL waits for TC before returning. So the wire goes quiet for a moment between letters. Sending the whole buffer in one call would only wait for TXE between letters, and for TC once at the end.</p></details>
         <details><summary>After \n, does <code>_write</code> look into the buffer and find it empty?</summary>

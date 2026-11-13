@@ -73,7 +73,7 @@
     {
       ph: 1, who: 'cpu', title: 'The NVIC switch for USART3',
       text: 'The USART3 line is enabled in the NVIC, priority 0.',
-      q: 'You ticked "USART3 global interrupt" in CubeMX: this is that tick. It only opens the NVIC door. The UART still raises nothing until TXEIE or TCIE is set: an interrupt needs both switches.',
+      q: 'I ticked the interrupt in CubeMX. Isn\'t that enough? No: that tick only opens the NVIC door. The UART raises nothing until TXEIE or TCIE is set. An interrupt needs both switches.',
       set: { nvic: { uEn: 1 } },
     },
     {
@@ -85,7 +85,7 @@
     {
       ph: 1, who: 'cpu', by: { 'uart.TEACK': 'uart', 'uart.shift': 'uart' }, title: 'UE = 1: the UART wakes up',
       text: 'HAL sets <b>UE</b>. The transmitter starts, confirms with <b>TEACK = 1</b>, and first sends one <b>idle frame</b>: 10 high bits, 87 µs, no start bit.',
-      q: 'This idle frame is why our first message, Blink 0, was one letter late: it had to wait behind it.',
+      q: 'Why was our very first message, Blink 0, one letter late? It had to wait behind this idle frame.',
       set: { doing: '__HAL_UART_ENABLE(), wait for TEACK', uart: { UE: 1, TEACK: 1, shift: 'idle' } },
     },
     {
@@ -98,7 +98,7 @@
     {
       ph: 2, who: 'cpu', title: 'snprintf writes the message',
       text: '<code>Blink 10\\r\\n</code> goes into <code>tx_buf</code>: 10 bytes, straight to the RAM shelf (MPU: no cache).',
-      q: '10, not 12: <code>\\r</code> and <code>\\n</code> are one byte each (0x0D, 0x0A).',
+      q: 'Why 10 bytes and not 12? <code>\\r</code> and <code>\\n</code> are one byte each (0x0D, 0x0A).',
       set: { doing: 'line 130: snprintf(tx_buf, …)', mem: { text: 'Blink 10\r\n' } },
     },
     {
@@ -157,7 +157,7 @@
     {
       ph: 3, who: 'uart', time: L + 0.01, by: { 'uart.TDR': 'dma', 'dma.NDTR': 'dma' }, title: 'B ends → l moves on → request → i',
       text: 'At B\'s stop bit, <code>l</code> moves onto the conveyor, TXE = 1, the request goes out, the DMA brings <code>i</code>, TXE = 0 again. All within a few clock cycles.',
-      q: 'TXE comes back when the waiting letter moves onto the conveyor. So the next request always comes when the <b>previous</b> letter ends.',
+      q: 'When exactly does TXE come back? When the waiting letter moves onto the conveyor. So the next request always comes when the <b>previous</b> letter ends.',
       fly: [
         { from: 'tdr', to: 'shift', label: 'l', cls: 'tok-uart', t0: 0, t1: 0.5 },
         { from: 'mem:2', to: 'tdr', label: 'i', cls: 'tok-dma', t0: 0.5, t1: 1 },
@@ -179,7 +179,7 @@
     {
       ph: 3, who: 'cpu', time: 3 * L + 2, title: 'Bell: half transfer',
       text: 'The NVIC makes the CPU jump to <code>DMA1_Stream0_IRQHandler</code>. HAL clears HTIF and calls the half-transfer callback, which is empty in our project. A few microseconds later the CPU is back in its loop.',
-      q: 'The handler is not a third worker. It is a function that the CPU runs when the NVIC tells it to.',
+      q: 'Who is the "handler"? Not a third worker: just a function the CPU runs when the NVIC tells it to.',
       set: { doing: 'DMA1_Stream0_IRQHandler(): half → back to own work', dma: { HTIF: 0 }, nvic: { dmaPend: 0 } },
     },
     {
@@ -453,7 +453,7 @@
     const s = STEPS[anim.i], last = anim.i === STEPS.length - 1;
     $('#popup').innerHTML = `<div class="stepno">${PHASES[s.ph - 1]} · Step ${anim.i + 1} of ${STEPS.length}</div>
       <div class="title"><span class="who ${s.who}">${WHO[s.who]}</span>${s.title}</div><div>${s.text}</div>
-      ${s.q ? `<div class="q">❓ <b>You asked:</b> ${s.q}</div>` : ''}
+      ${s.q ? `<div class="q">❓ <b>Common question:</b> ${s.q}</div>` : ''}
       <div class="nav"><button data-nav="back" ${anim.i === 0 ? 'disabled' : ''}>◀ Back</button>${last
         ? '<button data-nav="restart" class="primary">↻ Start again</button>'
         : '<button data-nav="next" class="primary">Next ▶</button>'}</div>`;

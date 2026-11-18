@@ -1,0 +1,97 @@
+/* "A task's home in memory" lesson */
+:root {
+  --c-code: #7fa7d9;
+  --c-const: #b9a6e3;
+  --c-data: #6cc08b;
+  --c-bss: #f2c46d;
+  --c-heap: #d6ab6e;
+  --c-hdr: #ffe066;
+  --c-tcb: #ffffff;
+  --c-a5: #e4eaf1;
+  --c-sw: #2f62ad;
+  --c-hw: #4f86cf;
+  --c-call: #9cc3ee;
+  --c-msp: #f0a8c9;
+  --ink: #231a12;        /* text on light boxes, both themes */
+  --tape: #fbf6e9;
+}
+
+/* Chapter buttons, toolbar, figure (same as the other story lessons) */
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 4px; }
+.chapters button { font-size: .85rem; padding: 4px 10px; border-radius: 99px; }
+.chapters button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; scroll-margin-top: 8px; }
+.toolbar .speed { margin-left: auto; font-size: .9rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.figure { margin: 8px 0; }
+.scroll-x { overflow-x: auto; }
+#scene svg { display: block; width: 100%; min-width: 760px; height: auto; max-height: calc(100vh - 250px); }
+
+/* Scene basics */
+svg text { fill: var(--text); font-family: var(--sans); }
+svg .muted { fill: var(--muted); }
+svg .mn { font-family: var(--mono); }
+svg text.ink { fill: var(--ink); }
+svg text.inkw { fill: #fff; }
+svg text.lbl { paint-order: stroke; stroke: rgba(255, 255, 255, .85); stroke-width: 3px; stroke-linejoin: round; }
+svg .panel { fill: var(--surface-2); stroke: var(--border); }
+svg .codeline { fill: var(--accent-soft); }
+svg .tape { fill: var(--tape); stroke: #cdbb92; }
+svg text.tapetxt { fill: #4a3a20; font-family: var(--mono); }
+svg .box { stroke: rgba(30, 15, 5, .55); stroke-width: 1; }
+svg .hl { stroke: var(--warn); stroke-width: 4; }
+svg .focus { fill: none; stroke: var(--accent); stroke-width: 3; animation: pulse 1.2s ease-in-out infinite; }
+svg .bad { stroke: var(--bad); }
+svg .badfill { fill: var(--bad); }
+svg .okfill { fill: var(--ok); }
+svg .warnfill { fill: var(--warn); }
+svg .arrow { stroke: var(--warn); stroke-width: 3; fill: none; }
+svg .arrow-bad { stroke: var(--bad); stroke-width: 3.5; fill: none; }
+svg .arrow-ok { stroke: var(--ok); stroke-width: 3.5; fill: none; }
+svg .token { fill: var(--warn); }
+svg .calc { fill: var(--surface); stroke: var(--border); }
+svg .tablehead { fill: var(--surface-2); }
+svg .rowline { stroke: var(--border); }
+svg .cellbad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2; }
+svg .card-bg { fill: #fdfbf6; stroke: #8a6d12; stroke-width: 2; }
+svg .ban-wrap { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .25)); }
+svg .ban { stroke-width: 2.5; }
+svg .ban-problem { fill: var(--bad-soft); stroke: var(--bad); }
+svg .ban-idea { fill: var(--warn-soft); stroke: var(--warn); }
+svg .ban-win { fill: var(--ok-soft); stroke: var(--ok); }
+svg .ban-label { fill: var(--muted); letter-spacing: .08em; }
+@keyframes pulse { 50% { opacity: .25; } }
+
+/* Step popup */
+.popup {
+  background: var(--surface); border: 2px solid var(--accent); border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18); padding: 12px 16px; margin: 8px 0 24px;
+}
+.popup.problem { border-color: var(--bad); background: var(--bad-soft); }
+.popup.idea { border-color: var(--warn); background: var(--warn-soft); }
+.popup.win { border-color: var(--ok); background: var(--ok-soft); }
+.popup .more { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; font-size: .93rem; }
+.popup .more summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.popup .more div { margin-top: 6px; color: var(--text); }
+.popup .q { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--warn); font-size: .93rem; }
+.popup .stepno { font-size: .8rem; color: var(--muted); }
+.popup .title { font-weight: 700; font-size: 1.08rem; margin: 2px 0 4px; }
+.popup .nav { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+
+/* Summary */
+.summary { margin-top: 16px; }
+.summary h2 { margin-top: 0; }
+.summary h3 { margin: 22px 0 6px; font-size: 1.02rem; }
+.fineprint { color: var(--muted); font-size: .88rem; margin-bottom: 0; }
+.faq details { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq p { margin: 6px 0 2px; color: var(--text); }
+
+/* Video mode (?video): only the story, ready for screen recording */
+body.video .topbar, body.video .hero, body.video .summary, body.video .footer, body.video .chapters { display: none; }
+body.video .wrap { max-width: 1560px; }
+body.video .toolbar { margin: 6px 0; }
+body.video #scene svg { max-height: calc(100vh - 280px); }
+body.video .popup { margin: 6px 0; font-size: 1.05rem; }
+
+@media (prefers-reduced-motion: reduce) { svg .focus { animation: none; } }
+@media (max-width: 600px) { .toolbar .speed { margin-left: 0; } }

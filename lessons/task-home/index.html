@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Task's Home</title>
+  <meta name="description" content="We gave a FreeRTOS task 2048 bytes and the debugger said 2040. Follow one task through the memory cupboard of an STM32: what the linker places, what FreeRTOS cuts out at run time, what is inside the stack and the TCB, and where the 8 bytes go. Every number was measured on a real board.">
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="task.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="../../index.html">BitByBit<span> Embedded</span></a>
+      <nav><a href="../../index.html#lessons">Lessons</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <span class="tag">Memory · FreeRTOS · Stack</span>
+      <h1>A task's home in memory</h1>
+      <p>We created one FreeRTOS task and gave it a 2048-byte stack. The debugger says <b>2040</b>.
+        Where did 8 bytes go? To find out, we follow the task through the memory cupboard of an STM32,
+        shelf by shelf: who puts what where, and when. Every number was measured on a real board.
+        New to memory? Start with <a href="../memory-robots/index.html">Where do your variables live?</a></p>
+    </section>
+
+    <nav class="chapters" id="chapters" aria-label="Chapters"></nav>
+
+    <div class="toolbar">
+      <button id="btn-restart">⏮ Restart</button>
+      <button id="btn-play">▶ Auto-play</button>
+      <label class="speed">Auto-play speed
+        <select id="speed">
+          <option value="slow">Slow</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="figure scroll-x"><div id="scene"></div></div>
+    <div id="popup" class="popup" aria-live="polite"></div>
+
+    <section class="card summary">
+      <h2>Who puts what where</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Piece of the task</th><th>Shelf</th><th>Placed by</th><th>When</th><th>Our board</th></tr></thead>
+        <tbody>
+          <tr><td>Code (<code>StartDefaultTask</code>)</td><td>Flash, <code>.text</code></td><td>Linker</td><td>Build time</td><td class="mono">0x0800BF3C, 52 B</td></tr>
+          <tr><td>Attributes (<code>const osThreadAttr_t</code>)</td><td>Flash, <code>.rodata</code></td><td>Linker</td><td>Build time</td><td class="mono">0x0800DE9C, 36 B</td></tr>
+          <tr><td>The empty box <code>ucHeap</code></td><td>RAM, inside <code>.bss</code></td><td>Linker</td><td>Build time</td><td class="mono">0x200011D8, 15,360 B</td></tr>
+          <tr><td>Stack</td><td>RAM, inside <code>ucHeap</code></td><td>FreeRTOS (<code>pvPortMalloc</code>)</td><td>Run time</td><td class="mono">0x200011E0, 2048 B</td></tr>
+          <tr><td>TCB (the ID card)</td><td>RAM, inside <code>ucHeap</code></td><td>FreeRTOS (<code>pvPortMalloc</code>)</td><td>Run time</td><td class="mono">0x200019E8, 616 B</td></tr>
+          <tr><td>Handle (holds the TCB address)</td><td>RAM, <code>.bss</code></td><td>Linker</td><td>Build time</td><td class="mono">0x20004E08, 4 B</td></tr>
+          <tr><td>Idle and timer tasks</td><td>RAM, <code>.bss</code> (static)</td><td>Linker</td><td>Build time</td><td class="mono">not in ucHeap</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>What we measured</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Question</th><th>Answer on our board</th><th>How we know</th></tr></thead>
+        <tbody>
+          <tr><td>Asked 2048, debugger says?</td><td><b>2040</b> (1024 → 1016, 512 → 504)</td><td>Debugger's RTOS view</td></tr>
+          <tr><td>Where are the 8 bytes?</td><td>At the top: 0x200019D8 – 0x200019DF, never used</td><td>Stack End column + FreeRTOS source</td></tr>
+          <tr><td>Size of one TCB</td><td><b>616 B</b> = 104 B scheduler fields + <b>512 B</b> C-library state</td><td>Map file + <code>p sizeof(struct _reent)</code></td></tr>
+          <tr><td>A sleeping task uses</td><td><b>132 B</b> = 36 (PendSV) + 32 (hardware) + 64 (call frames)</td><td>Memory dump at the stack pointer</td></tr>
+          <tr><td>Why Peak 120 &lt; Used 132?</td><td>R4–R6 still hold 0xA5A5A5A5; the scanner counts them as free</td><td>Memory dump: scan stops at R7</td></tr>
+          <tr><td>Heap left after two tasks</td><td>11,016 B of 15,360</td><td>4 blocks + headers</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 style="margin-top:28px">Questions I asked on the way</h2>
+      <h3>About the task's memory</h3>
+      <div class="faq">
+        <details><summary>Each shelf is one byte. What is the label of the last RAM shelf?</summary>
+          <p>Last = first + number of shelves − 1. 128 KB = 131,072 = 0x20000 shelves, so 0x20000000 + 0x20000 − 1 = <b>0x2001FFFF</b>. The address 0x20020000 is one <i>past</i> the end; the main stack starts there.</p></details>
+        <details><summary>Are the memory compartments placed directly below each other?</summary>
+          <p>No. Between them is wall: addresses with no memory behind them. Touching one gives a HardFault. The order in the linker script's <code>MEMORY</code> block doesn't matter; the addresses decide.</p></details>
+        <details><summary>After <code>.data</code> ends, does <code>.bss</code> start? And then <code>ucHeap</code>?</summary>
+          <p><code>.bss</code> starts right after <code>.data</code> (0x20000070). But <code>ucHeap</code> does not come after <code>.bss</code>: it is <b>one variable inside it</b>, with other variables before and after it.</p></details>
+        <details><summary>Is there one <code>ucHeap</code> per task?</summary>
+          <p>One for the whole program. Every task and queue that FreeRTOS creates dynamically is cut out of the same array.</p></details>
+        <details><summary>Does the linker place the task's stack?</summary>
+          <p>No. The linker doesn't know tasks exist. It places the empty box. <code>osThreadNew</code> → <code>pvPortMalloc</code> cuts the stack out of it while the program runs. That's why the map file shows <code>ucHeap</code> but never "defaultTask stack".</p></details>
+        <details><summary>Are the 8 header bytes taken from my 2048?</summary>
+          <p>No, they are extra. <code>pvPortMalloc(2048)</code> takes 2,056 bytes from the heap. The stack gets all 2048.</p></details>
+        <details><summary>If the variables before the heap end at 0x20000002, does the stack start at 0x20000003?</summary>
+          <p>No. heap_4 first rounds its start up to a multiple of 8 (0x20000008), then puts the 8-byte header there. The stack would start at 0x20000010.</p></details>
+        <details><summary>Does an 8-bit variable use a whole 4-byte row of the stack?</summary>
+          <p>Memory is byte-addressed; rows are only a drawing. Saved registers always take whole words. Small locals often stay in registers, and on the stack the compiler may pack four bytes into one word, or add padding.</p></details>
+        <details><summary>Is it "multiple of 8" because the CPU reads 64 bits at a time?</summary>
+          <p>No. The reason is the ARM calling standard (AAPCS): 8-byte values like <code>double</code> and <code>uint64_t</code> must sit on 8-byte boundaries. A wrong alignment breaks things like <code>printf("%f")</code>. The bus width only changes speed.</p></details>
+        <details><summary>Must SP always be a multiple of 8?</summary>
+          <p>At every function call and on every interrupt entry, yes (the CPU re-aligns on interrupts by itself). Inside a function it may briefly be only a multiple of 4.</p></details>
+      </div>
+      <h3>Related questions</h3>
+      <div class="faq">
+        <details><summary>Are the task's attributes stored in RAM?</summary>
+          <p>They are <code>const</code>, so they stay in Flash (<code>.rodata</code>). <code>osThreadNew</code> reads them once and copies what it needs into the TCB.</p></details>
+        <details><summary>Are the Idle task and the timer task also in <code>ucHeap</code>?</summary>
+          <p>Not in our setup. With static allocation enabled, their TCBs and stacks are fixed arrays in <code>.bss</code>, and so is the timer queue.</p></details>
+        <details><summary>Where do interrupt handlers keep their data?</summary>
+          <p>On the main stack (MSP) at the top of RAM. Tasks use the other stack pointer (PSP) and their own stacks. When an interrupt hits a task, the hardware still pushes its 8-word frame onto the <i>task's</i> stack first.</p></details>
+        <details><summary>Is the .elf file stored in Flash?</summary>
+          <p>No. Flash holds the program's contents: vector table, code, constants, starting values. The .elf with its debug information stays on the laptop.</p></details>
+      </div>
+      <p class="fineprint">STM32 with a Cortex-M7 core, FreeRTOS 10.6 (CMSIS-RTOS2 wrapper, heap_4), GCC Debug build. Addresses and sizes are from our map file, the debugger's RTOS view and a memory dump.
+        Another chip, compiler or configuration gives other addresses, but the same rules.</p>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap">BitByBit Embedded · built while learning, shared while building.</div></footer>
+
+  <script src="task.js"></script>
+</body>
+</html>

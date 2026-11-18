@@ -15,9 +15,10 @@ lessons/spi-sensor/           "Read a sensor over SPI"
 lessons/memory-robots/        "Where do your variables live?"
 lessons/cpu-waiting/          "Your CPU is fast. So why is it waiting?"
 lessons/uart-zoom/            "UART at 100× zoom" (register-level DMA send)
+lessons/task-home/            "A task's home in memory" (FreeRTOS task: heap, stack, TCB)
 ```
 
-Story lessons (memory-robots, cpu-waiting) share one step engine: every step
+Story lessons (memory-robots, cpu-waiting, task-home) share one step engine: every step
 changes the scene state, Next animates, Back jumps. In cpu-waiting:
 
 - `?step=12` opens a given step (good for sharing one moment).
